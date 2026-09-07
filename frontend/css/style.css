@@ -1,1 +1,99 @@
 *{box-sizing:border-box}body{margin:0;font:14px Arial;background:#eef2f5;color:#263238;overflow:hidden}header{height:58px;background:#17212b;color:#fff;display:flex;justify-content:space-between;align-items:center;padding:0 15px}.brand{font-size:20px;font-weight:700}.brand span{color:#4fc3f7}.actions{display:flex;gap:6px}button{border:0;border-radius:5px;padding:8px 11px;background:#455a64;color:#fff;cursor:pointer}button:hover{background:#607d8b}.primary{background:#0288d1!important}.app{height:calc(100vh - 58px);display:flex}.sidebar{width:255px;background:#fff;border-right:1px solid #d4dce1;padding:12px;overflow:auto}.sidebar section{border-bottom:1px solid #e1e6e9;padding-bottom:13px;margin-bottom:13px}.sidebar h3{margin:0 0 9px}.sidebar label{display:block;margin:7px 0 3px;font-size:12px}.sidebar input:not([type=checkbox]){width:100%;padding:7px;border:1px solid #c8d0d5;border-radius:4px}.sidebar button:not(.primary){width:100%;margin-bottom:5px;background:#f1f4f6;color:#263238;border:1px solid #d4dce1;text-align:left}.sidebar button.active{background:#dff3ff;border-color:#03a9f4}.full{width:100%;margin-top:9px}#aiStatus{margin-top:9px;background:#f4f7f9;padding:8px;border-radius:5px;font-size:12px}.workspace{position:relative;flex:1}.workspace canvas{width:100%;height:100%;display:block}.status{position:absolute;bottom:12px;left:12px;background:white;padding:9px 12px;border-radius:6px;box-shadow:0 2px 8px #0002;font-size:12px}.properties{width:270px;background:#fff;border-left:1px solid #d4dce1;padding:13px;overflow:auto}.card{background:#f5f7f9;border-radius:6px;padding:11px;margin-bottom:11px;font-size:12px}.card p{margin:6px 0}.overlay{position:fixed;inset:0;background:#dce5ea;z-index:99}.hidden{display:none}.viewerTop{height:52px;background:#17212b;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px}.overlay canvas{display:block;width:100%;height:calc(100% - 52px)}@media(max-width:850px){.properties{display:none}.sidebar{width:210px}}@media(max-width:560px){.sidebar{width:175px}.actions button{font-size:11px}.brand{font-size:15px}}
+#planCanvas {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+button,
+input,
+label {
+    touch-action: manipulation;
+}
+
+button {
+    min-height: 44px;
+}
+
+@media (max-width: 850px) {
+    body {
+        overflow: auto;
+    }
+
+    header {
+        min-height: 58px;
+        height: auto;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px 10px;
+    }
+
+    .brand {
+        font-size: 17px;
+        line-height: 42px;
+        white-space: nowrap;
+    }
+
+    .actions {
+        flex: 1;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .actions button {
+        flex: 1 1 70px;
+        padding: 8px 6px;
+    }
+
+    .app {
+        height: auto;
+        min-height: calc(100vh - 58px);
+        display: block;
+    }
+
+    .sidebar {
+        width: 100%;
+        max-height: 42vh;
+        border-right: 0;
+        border-bottom: 1px solid #d4dce1;
+    }
+
+    .workspace {
+        height: 58vh;
+        min-height: 360px;
+    }
+
+    .sidebar .tool {
+        width: calc(50% - 3px);
+        display: inline-block;
+        margin-right: 2px;
+    }
+
+    .status {
+        bottom: 8px;
+        left: 8px;
+        right: 8px;
+        width: max-content;
+        max-width: calc(100% - 16px);
+    }
+
+    .viewerTop {
+        height: auto;
+        min-height: 58px;
+        gap: 8px;
+        padding: 7px 10px;
+    }
+
+    .viewerTop > div {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .viewerTop button {
+        padding: 7px 8px;
+    }
+
+    .overlay canvas {
+        height: calc(100% - 58px);
+    }
+}
