@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# Environment / secrets
+.env
+
+# Uploaded files
+uploads/*
+!uploads/.gitkeep
+
+# Generated files
+generated/*
+!generated/.gitkeep
+
+# Local data
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
