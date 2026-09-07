@@ -10,7 +10,7 @@ let controls3D = null;
 let houseGroup = null;
 let lightsGroup = null;
 
-let roofVisible = true;
+let roofVisible = false;
 let labelsVisible = true;
 
 /* ---------------------------------------------------------
@@ -45,8 +45,8 @@ function create3DViewer() {
 
     if (!canvas) return;
 
-    const width = window.innerWidth;
-    const height = window.innerHeight - 52;
+    const width = canvas.clientWidth || window.innerWidth;
+    const height = canvas.clientHeight || window.innerHeight - 52;
 
     /* Remove previous renderer */
     if (renderer3D) {
@@ -55,7 +55,8 @@ function create3DViewer() {
 
     scene3D = new THREE.Scene();
 
-    scene3D.background = new THREE.Color(0xbfd8e3);
+    scene3D.background = new THREE.Color(0xb9d9e8);
+    scene3D.fog = new THREE.Fog(0xb9d9e8, 35, 110);
 
     /* -----------------------------------------------------
        CAMERA
@@ -88,6 +89,7 @@ function create3DViewer() {
     renderer3D.shadowMap.type = THREE.PCFSoftShadowMap;
 
     renderer3D.outputEncoding = THREE.sRGBEncoding;
+    renderer3D.toneMapping = THREE.NoToneMapping;
 
     /* -----------------------------------------------------
        CAMERA CONTROLS
@@ -119,7 +121,7 @@ function create3DViewer() {
 
     const ambient = new THREE.AmbientLight(
         0xffffff,
-        0.55
+        0.28
     );
 
     lightsGroup.add(ambient);
@@ -127,7 +129,7 @@ function create3DViewer() {
     const hemi = new THREE.HemisphereLight(
         0xddeeff,
         0x777777,
-        0.7
+        0.38
     );
 
     hemi.position.set(0, 20, 0);
@@ -136,7 +138,7 @@ function create3DViewer() {
 
     const sun = new THREE.DirectionalLight(
         0xffffff,
-        1.2
+        0.72
     );
 
     sun.position.set(
@@ -210,7 +212,7 @@ function createGround() {
 
     const material =
         new THREE.MeshStandardMaterial({
-            color: 0x8fa58c,
+            color: 0x789b78,
             roughness: 0.9,
             metalness: 0
         });
@@ -263,15 +265,30 @@ function floorMaterial() {
 
     return new THREE.MeshStandardMaterial({
         color: 0xb8a98e,
-        roughness: 0.65
+        roughness: 0.72,
+        metalness: 0.02
     });
 }
 
 function ceilingMaterial() {
 
     return new THREE.MeshStandardMaterial({
-        color: 0xf0eee8,
-        roughness: 0.8
+        color: 0xe8f1f2,
+        roughness: 0.8,
+        transparent: true,
+        opacity: 0.08,
+        depthWrite: false,
+        side: THREE.DoubleSide
+    });
+}
+
+function roomFloorMaterial(room) {
+    const colors = [0xf6c6b4, 0xb9d8f2, 0xc8e6c9, 0xf6df9d, 0xd8c4ed, 0xbfe5df];
+    const index = Math.abs(String(room.id || room.name || "room").split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)) % colors.length;
+    return new THREE.MeshStandardMaterial({
+        color: colors[index],
+        roughness: 0.76,
+        metalness: 0.02
     });
 }
 
@@ -311,8 +328,6 @@ function buildArchitecturalHouse() {
 
     const wallMat = wallMaterial();
 
-    const floorMat = floorMaterial();
-
     const windowMat = windowMaterial();
 
     const doorMat = doorMaterial();
@@ -346,7 +361,7 @@ function buildArchitecturalHouse() {
             createFloorSlab(
                 room,
                 baseY,
-                floorMat
+                roomFloorMaterial(room)
             );
 
 
@@ -682,6 +697,8 @@ function createDoor(
 
 
         mesh.castShadow = true;
+        mesh.renderOrder = 3;
+        mesh.material.depthTest = false;
 
         houseGroup.add(mesh);
 
@@ -749,6 +766,8 @@ function createDoorFrame(
             z
         );
 
+        mesh.renderOrder = 3;
+        mesh.material.depthTest = false;
         houseGroup.add(mesh);
     }
 
@@ -888,6 +907,8 @@ function createWindow(
 
 
         mesh.castShadow = true;
+        mesh.renderOrder = 3;
+        mesh.material.depthTest = false;
 
         houseGroup.add(mesh);
 
@@ -947,6 +968,8 @@ function createWindowFrame(
             z
         );
 
+        mesh.renderOrder = 3;
+        mesh.material.depthTest = false;
         houseGroup.add(mesh);
     }
 
@@ -1025,7 +1048,7 @@ function createRoof(
     floorHeight
 ) {
 
-    const b = getBounds();
+    const b = getPlanBounds();
 
     if (!b || !b.width || !b.depth) return;
 
@@ -1066,9 +1089,9 @@ function createRoof(
 
 
     roof.position.set(
-        b.width / 2,
+        b.minX + b.width / 2,
         roofHeight + 0.1,
-        b.depth / 2
+        b.minY + b.depth / 2
     );
 
 
@@ -1085,9 +1108,9 @@ function createRoof(
 
 
     createWall(
-        b.width / 2,
+        b.minX + b.width / 2,
         roofHeight + parapetHeight / 2,
-        -0.1,
+        b.minY - 0.1,
         roofWidth,
         parapetHeight,
         parapetThickness,
@@ -1095,9 +1118,9 @@ function createRoof(
     );
 
     createWall(
-        b.width / 2,
+        b.minX + b.width / 2,
         roofHeight + parapetHeight / 2,
-        b.depth + 0.1,
+        b.minY + b.depth + 0.1,
         roofWidth,
         parapetHeight,
         parapetThickness,
@@ -1105,9 +1128,9 @@ function createRoof(
     );
 
     createSideWall(
-        -0.1,
+        b.minX - 0.1,
         roofHeight + parapetHeight / 2,
-        b.depth / 2,
+        b.minY + b.depth / 2,
         parapetThickness,
         parapetHeight,
         roofDepth,
@@ -1115,14 +1138,25 @@ function createRoof(
     );
 
     createSideWall(
-        b.width + 0.1,
+        b.minX + b.width + 0.1,
         roofHeight + parapetHeight / 2,
-        b.depth / 2,
+        b.minY + b.depth / 2,
         parapetThickness,
         parapetHeight,
         roofDepth,
         roofMat
     );
+}
+
+function getPlanBounds() {
+    if (!rooms || !rooms.length) return { minX: 0, minY: 0, width: 0, depth: 0 };
+
+    const minX = Math.min(...rooms.map(room => room.x));
+    const minY = Math.min(...rooms.map(room => room.y));
+    const maxX = Math.max(...rooms.map(room => room.x + room.width));
+    const maxY = Math.max(...rooms.map(room => room.y + room.height));
+
+    return { minX, minY, width: maxX - minX, depth: maxY - minY };
 }
 
 
@@ -1467,15 +1501,18 @@ function fitCameraToHouse() {
         );
 
 
-    const distance =
-        maxSize * 1.8;
+    const distance = Math.max(maxSize * 1.65, 8);
 
 
     camera3D.position.set(
-        center.x + distance,
-        center.y + distance * 0.75,
-        center.z + distance
+        center.x + distance * 0.95,
+        center.y + distance * 1.7,
+        center.z + distance * 0.95
     );
+
+    camera3D.near = Math.max(0.05, distance / 100);
+    camera3D.far = Math.max(150, distance * 8);
+    camera3D.updateProjectionMatrix();
 
 
     if (controls3D) {
