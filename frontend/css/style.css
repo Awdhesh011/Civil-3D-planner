@@ -5,6 +5,33 @@
     -webkit-user-select: none;
 }
 
+.zoom-tools {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 4px;
+    background: #fff;
+    padding: 4px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px #0002;
+}
+
+.zoom-tools button {
+    min-width: 38px;
+    padding: 6px 9px;
+    background: #455a64;
+}
+
+.card input,
+.card select {
+    width: 100%;
+    padding: 6px;
+    margin-top: 3px;
+    border: 1px solid #c8d0d5;
+    border-radius: 4px;
+}
+
 button,
 input,
 label {
