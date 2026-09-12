@@ -398,12 +398,6 @@ function create3DViewer() {
 
     fitCameraToHouse();
 
-    /* -----------------------------------------------------
-       RESIZE
-    ----------------------------------------------------- */
-
-    window.onresize = resize3DViewer;
-
     animate3D();
 }
 
@@ -1886,6 +1880,8 @@ function resize3DViewer() {
 /* ---------------------------------------------------------
    GLOBAL FUNCTIONS
 --------------------------------------------------------- */
+
+window.addEventListener("resize", resize3DViewer);
 
 window.open3D =
     open3D;

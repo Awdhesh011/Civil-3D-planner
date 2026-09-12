@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Civil 3D Planner AI</title><link rel="stylesheet" href="/css/style.css"></head><body>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Civil 3D Planner AI</title><link rel="stylesheet" href="/css/style.css?v=2"></head><body>
 <header><div class="brand">Civil <span>3D Planner AI</span></div><div class="actions"><button onclick="newProject()">New</button><button onclick="saveProject()">Save</button><button onclick="loadProject()">Load</button><button onclick="analyzeLayout()">Analyze</button><button class="primary" onclick="open3D()">3D</button><button onclick="openElevation()">Elevation</button></div></header>
 <div class="app"><aside class="sidebar">
 <section><h3>2D Tools</h3><button class="tool active" data-tool="select">🖱 Select</button><button class="tool" data-tool="room">🧱 Draw Room</button><button class="tool" data-tool="door">🚪 Door</button><button class="tool" data-tool="window">🪟 Window</button><button onclick="undo()">↩ Undo</button><button onclick="deleteSelected()">🗑 Delete</button><button onclick="clearPlan()">Clear</button></section>
@@ -29,4 +29,4 @@
     <canvas id="elevationCanvas" class="hidden" aria-label="Front elevation drawing"></canvas></div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="/js/planner.js"></script><script src="/js/viewer3d.js"></script></body></html>
+<script src="/js/planner.js?v=2"></script><script src="/js/viewer3d.js?v=2"></script></body></html>
