@@ -27,11 +27,3 @@ class Project(BaseModel):
     rooms:List[Room]=[]
     openings:List[Opening]=[]
 
-class AIPlan(BaseModel):
-    project_name:str="AI Reconstructed Plan"
-    floors:int=1
-    floor_to_floor:float=3
-    rooms:List[Room]=[]
-    openings:List[Opening]=[]
-    notes:List[str]=[]
-    confidence:float=0

@@ -19,11 +19,15 @@ let labelsVisible = true;
 
 function open3D() {
     if (!rooms || rooms.length === 0) {
-        alert("Import or draw a 2D floor plan first.");
+        alert("Draw a 2D floor plan first.");
         return;
     }
 
     document.getElementById("viewer").classList.remove("hidden");
+    document.getElementById("threeCanvas").classList.remove("hidden");
+    document.getElementById("elevationCanvas").classList.add("hidden");
+    document.getElementById("threeControls").classList.remove("hidden");
+    document.getElementById("elevationControls").classList.add("hidden");
     document.getElementById("viewerTitle").textContent =
         "🏠 Architectural 3D Model";
 
@@ -32,6 +36,211 @@ function open3D() {
 
 function closeViewer() {
     document.getElementById("viewer").classList.add("hidden");
+}
+
+function openElevation() {
+    if (!rooms || rooms.length === 0) {
+        alert("Draw a 2D floor plan first.");
+        return;
+    }
+
+    document.getElementById("viewer").classList.remove("hidden");
+    document.getElementById("elevationSide").value = "front";
+    document.getElementById("viewerTitle").textContent = "Front Elevation";
+    document.getElementById("threeCanvas").classList.add("hidden");
+    document.getElementById("elevationCanvas").classList.remove("hidden");
+    document.getElementById("threeControls").classList.add("hidden");
+    document.getElementById("elevationControls").classList.remove("hidden");
+    redrawElevation();
+}
+
+function redrawElevation() {
+    const canvas = document.getElementById("elevationCanvas");
+    if (!canvas || canvas.classList.contains("hidden") || !rooms.length) return;
+
+    const ratio = window.devicePixelRatio || 1;
+    const width = Math.max(canvas.clientWidth, 320);
+    const height = Math.max(canvas.clientHeight, 240);
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+    const context = canvas.getContext("2d");
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    context.clearRect(0, 0, width, height);
+
+    const bounds = getPlanBounds();
+    const side = document.getElementById("elevationSide")?.value || "front";
+    const sideLabels = { front: "Front", back: "Back", left: "Left", right: "Right" };
+    document.getElementById("viewerTitle").textContent = `${sideLabels[side]} Elevation`;
+    const floorsCount = Math.max(1, Number(document.getElementById("floors").value) || 1);
+    const floorHeight = Math.max(0.1, Number(document.getElementById("floorToFloor").value) || 3);
+    const totalHeight = floorsCount * floorHeight;
+    const facadeLength = side === "front" || side === "back" ? bounds.width : bounds.depth;
+    const padding = { left: 82, right: 42, top: 48, bottom: 84 };
+    const scaleX = (width - padding.left - padding.right) / Math.max(facadeLength, 1);
+    const scaleY = (height - padding.top - padding.bottom) / Math.max(totalHeight, 1);
+    const scale = Math.min(scaleX, scaleY);
+    const drawingWidth = facadeLength * scale;
+    const drawingHeight = totalHeight * scale;
+    const originX = padding.left + ((width - padding.left - padding.right) - drawingWidth) / 2;
+    const groundY = padding.top + drawingHeight;
+
+    const skyGradient = context.createLinearGradient(0, 0, 0, groundY);
+    skyGradient.addColorStop(0, "#8ed8f4");
+    skyGradient.addColorStop(0.62, "#d8f3fb");
+    skyGradient.addColorStop(1, "#f4fbf8");
+    context.fillStyle = skyGradient;
+    context.fillRect(0, 0, width, height);
+    const groundGradient = context.createLinearGradient(0, groundY, 0, height);
+    groundGradient.addColorStop(0, "#b8d99b");
+    groundGradient.addColorStop(1, "#6fa36f");
+    context.fillStyle = groundGradient;
+    context.fillRect(0, groundY, width, height - groundY);
+    context.fillStyle = "rgba(255, 255, 255, 0.55)";
+    context.beginPath();
+    context.arc(width - 58, 58, 23, 0, Math.PI * 2);
+    context.fill();
+    context.strokeStyle = "#37474f";
+    context.lineWidth = 2;
+    context.beginPath();
+    context.moveTo(24, groundY);
+    context.lineTo(width - 24, groundY);
+    context.stroke();
+
+    const facadeRooms = rooms.filter(room => {
+        if (side === "front") return room.y <= bounds.minY + 0.01;
+        if (side === "back") return room.y + room.height >= bounds.minY + bounds.depth - 0.01;
+        if (side === "left") return room.x <= bounds.minX + 0.01;
+        return room.x + room.width >= bounds.minX + bounds.width - 0.01;
+    });
+    const facadeColors = ["#f6c98f", "#f2a7a0", "#a8d8c0", "#a9c9e8", "#e5c4f1", "#f3d78b"];
+    facadeRooms.forEach((room, roomIndex) => {
+        for (let floor = 0; floor < floorsCount; floor += 1) {
+            const along = side === "front" || side === "back" ? room.x - bounds.minX : room.y - bounds.minY;
+            const roomLength = side === "front" || side === "back" ? room.width : room.height;
+            const x = originX + along * scale;
+            const y = groundY - (floor + 1) * floorHeight * scale;
+            const roomWidth = roomLength * scale;
+            const roomHeight = floorHeight * scale;
+            const baseColor = facadeColors[roomIndex % facadeColors.length];
+            const facadeGradient = context.createLinearGradient(x, y, x, y + roomHeight);
+            facadeGradient.addColorStop(0, floor % 2 ? baseColor : "#fff4d9");
+            facadeGradient.addColorStop(1, baseColor);
+            context.fillStyle = facadeGradient;
+            context.fillRect(x, y, roomWidth, roomHeight);
+            context.strokeStyle = "#5d6870";
+            context.lineWidth = 1.5;
+            context.strokeRect(x, y, roomWidth, roomHeight);
+            context.fillStyle = "rgba(255, 255, 255, 0.35)";
+            context.fillRect(x + 3, y + 3, Math.max(0, roomWidth - 6), Math.min(5, roomHeight / 8));
+        }
+    });
+
+    openings.forEach(opening => {
+        const room = rooms.find(item => item.id === opening.room_id);
+        if (!room) return;
+        const horizontal = side === "front" || side === "back";
+        const expectedSide = side === "front" ? "top" : side === "back" ? "bottom" : side === "left" ? "left" : "right";
+        const isFacadeOpening = opening.side === expectedSide;
+        if (!isFacadeOpening) return;
+        const openingWidth = Math.min(Number(opening.width) || 1, horizontal ? room.width : room.height) * scale;
+        const along = horizontal ? opening.x - bounds.minX : opening.y - bounds.minY;
+        const x = originX + along * scale;
+        const openingHeight = opening.type === "door" ? 2.1 : 1.2;
+        const openingFloor = Math.max(0, Math.min(floorsCount - 1, Math.floor((opening.floor || 1) - 1)));
+        const y = groundY - (openingFloor + 1) * floorHeight * scale + (floorHeight - openingHeight) * scale;
+        const openingGradient = context.createLinearGradient(x, y, x, y + openingHeight * scale);
+        if (opening.type === "door") {
+            openingGradient.addColorStop(0, "#b9784c");
+            openingGradient.addColorStop(1, "#633b2b");
+        } else {
+            openingGradient.addColorStop(0, "#b9f1ff");
+            openingGradient.addColorStop(0.5, "#38b9df");
+            openingGradient.addColorStop(1, "#176f9c");
+        }
+        context.fillStyle = openingGradient;
+        context.fillRect(x, y, openingWidth, openingHeight * scale);
+        context.strokeStyle = opening.type === "door" ? "#4a281d" : "#084d72";
+        context.lineWidth = 2;
+        context.strokeRect(x, y, openingWidth, openingHeight * scale);
+        if (opening.type === "window") {
+            context.beginPath();
+            context.moveTo(x + openingWidth / 2, y);
+            context.lineTo(x + openingWidth / 2, y + openingHeight * scale);
+            context.moveTo(x, y + openingHeight * scale / 2);
+            context.lineTo(x + openingWidth, y + openingHeight * scale / 2);
+            context.stroke();
+        }
+    });
+
+    const roofY = padding.top;
+    const roofGradient = context.createLinearGradient(0, roofY - 14, 0, roofY);
+    roofGradient.addColorStop(0, "#e76f51");
+    roofGradient.addColorStop(1, "#9f3f35");
+    context.fillStyle = roofGradient;
+    context.fillRect(originX - 8, roofY - 14, drawingWidth + 16, 14);
+    context.strokeStyle = "#672d2a";
+    context.lineWidth = 2;
+    context.strokeRect(originX - 8, roofY - 14, drawingWidth + 16, 14);
+    context.fillStyle = "#f7c948";
+    context.fillRect(originX - 2, roofY - 4, drawingWidth + 4, 4);
+
+    for (let floor = 1; floor < floorsCount; floor += 1) {
+        const lineY = groundY - floor * floorHeight * scale;
+        context.strokeStyle = "rgba(67, 97, 112, 0.55)";
+        context.lineWidth = 1;
+        context.setLineDash([5, 4]);
+        context.beginPath();
+        context.moveTo(originX, lineY);
+        context.lineTo(originX + drawingWidth, lineY);
+        context.stroke();
+        context.setLineDash([]);
+    }
+
+    function dimensionLine(x1, y1, x2, y2, label, vertical = false) {
+        context.strokeStyle = "#546e7a";
+        context.fillStyle = "#37474f";
+        context.lineWidth = 1;
+        context.beginPath();
+        context.moveTo(x1, y1);
+        context.lineTo(x2, y2);
+        context.stroke();
+        const tick = 5;
+        context.beginPath();
+        if (vertical) {
+            context.moveTo(x1 - tick, y1);
+            context.lineTo(x1 + tick, y1);
+            context.moveTo(x2 - tick, y2);
+            context.lineTo(x2 + tick, y2);
+        } else {
+            context.moveTo(x1, y1 - tick);
+            context.lineTo(x1, y1 + tick);
+            context.moveTo(x2, y2 - tick);
+            context.lineTo(x2, y2 + tick);
+        }
+        context.stroke();
+        context.font = "12px Arial";
+        context.textAlign = "center";
+        if (vertical) {
+            context.save();
+            context.translate(x1 - 14, (y1 + y2) / 2);
+            context.rotate(-Math.PI / 2);
+            context.fillText(label, 0, 0);
+            context.restore();
+        } else {
+            context.fillText(label, (x1 + x2) / 2, y1 + 18);
+        }
+    }
+
+    dimensionLine(originX, groundY + 38, originX + drawingWidth, groundY + 38, `${facadeLength.toFixed(2)} m`);
+    dimensionLine(originX - 32, groundY, originX - 32, roofY, `${totalHeight.toFixed(2)} m`, true);
+
+    context.fillStyle = "#15364b";
+    context.font = "600 15px Arial";
+    context.textAlign = "left";
+    context.fillText(`${sideLabels[side].toUpperCase()} ELEVATION`, 24, 25);
+    context.font = "12px Arial";
+    context.textAlign = "left";
+    context.fillText(`Scale 1:${Math.max(1, Math.round(1 / Math.max(scale / 80, 0.01)))}`, 24, height - 22);
 }
 
 
@@ -1638,6 +1847,8 @@ function animate3D() {
 
 function resize3DViewer() {
 
+    redrawElevation();
+
     if (!renderer3D || !camera3D)
         return;
 
@@ -1678,6 +1889,12 @@ function resize3DViewer() {
 
 window.open3D =
     open3D;
+
+window.openElevation =
+    openElevation;
+
+window.redrawElevation =
+    redrawElevation;
 
 window.closeViewer =
     closeViewer;

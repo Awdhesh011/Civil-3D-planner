@@ -38,6 +38,37 @@ label {
     touch-action: manipulation;
 }
 
+.viewerControls {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.viewerControls.hidden {
+    display: none;
+}
+
+#elevationCanvas {
+    background: #8ed8f4;
+}
+
+.elevationSelect {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #fff;
+    font-size: 12px;
+}
+
+.elevationSelect select {
+    min-height: 34px;
+    border: 0;
+    border-radius: 4px;
+    padding: 4px 6px;
+    color: #263238;
+    background: #fff;
+}
+
 button {
     min-height: 44px;
 }

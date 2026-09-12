@@ -1,21 +1,32 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Civil 3D Planner AI</title><link rel="stylesheet" href="/css/style.css"></head><body>
 <header><div class="brand">Civil <span>3D Planner AI</span></div><div class="actions"><button onclick="newProject()">New</button><button onclick="saveProject()">Save</button><button onclick="loadProject()">Load</button><button onclick="analyzeLayout()">Analyze</button><button class="primary" onclick="open3D()">3D</button><button onclick="openElevation()">Elevation</button></div></header>
 <div class="app"><aside class="sidebar">
-<section><h3>🤖 AI Plan Import</h3><p>Upload a clear PNG/JPG floor plan.</p><input id="planFile" type="file" accept=".png,.jpg,.jpeg,.webp,image/*"><button class="primary full" onclick="uploadPlan()">Analyze & Reconstruct</button><div id="aiStatus">Waiting for plan...</div></section>
 <section><h3>2D Tools</h3><button class="tool active" data-tool="select">🖱 Select</button><button class="tool" data-tool="room">🧱 Draw Room</button><button class="tool" data-tool="door">🚪 Door</button><button class="tool" data-tool="window">🪟 Window</button><button onclick="undo()">↩ Undo</button><button onclick="deleteSelected()">🗑 Delete</button><button onclick="clearPlan()">Clear</button></section>
 <section><h3>Settings</h3><label>Room name</label><input id="roomName" value="Bedroom"><label>Wall thickness</label><input id="wallThickness" type="number" value=".23" step=".01"><label>Floor height</label><input id="roomHeight" type="number" value="3" step=".1"><label><input id="gridToggle" type="checkbox" checked> Grid</label><label><input id="snapToggle" type="checkbox" checked> Snap</label><label>Grid m</label><input id="gridSize" type="number" value=".5" step=".1"><label>Project</label><input id="projectName" value="AI House"><label>Floors</label><input id="floors" type="number" value="1" min="1" max="10"><label>Floor-to-floor</label><input id="floorToFloor" type="number" value="3" step=".1"></section>
 </aside><main class="workspace"><canvas id="planCanvas"></canvas><div class="status">Tool: <b id="toolStatus">Select</b><br>Rooms: <b id="roomCount">0</b> · Openings: <b id="openingCount">0</b><br>Area: <b id="area">0 m²</b></div><div class="zoom-tools" aria-label="2D plan zoom controls"><button title="Zoom in" onclick="zoomIn()">+</button><button title="Zoom out" onclick="zoomOut()">−</button><button title="Fit plan" onclick="fitPlan()">Fit</button></div></main>
-<aside class="properties"><h3>AI Analysis</h3><div id="confidence" class="card">No AI plan imported.</div><div class="card"><h4 id="selectionTitle">Selected Room</h4><div id="props">Nothing selected.</div></div><div class="card"><h4>Building</h4><p>Area: <b id="summaryArea">0 m²</b></p><p>Width: <b id="summaryWidth">0 m</b></p><p>Depth: <b id="summaryDepth">0 m</b></p><p>Height: <b id="summaryHeight">0 m</b></p></div></aside></div>
+<aside class="properties"><h3>Plan Analysis</h3><div id="confidence" class="card">No validation run.</div><div class="card"><h4 id="selectionTitle">Selected Room</h4><div id="props">Nothing selected.</div></div><div class="card"><h4>Building</h4><p>Area: <b id="summaryArea">0 m²</b></p><p>Width: <b id="summaryWidth">0 m</b></p><p>Depth: <b id="summaryDepth">0 m</b></p><p>Height: <b id="summaryHeight">0 m</b></p></div></aside></div>
 <div id="viewer" class="overlay hidden">
     <div class="viewerTop"><b id="viewerTitle">3D Model</b>
-        <div style="display:flex;gap:6px">
+        <div id="threeControls" class="viewerControls">
             <button onclick="reset3DCamera()">Reset Camera</button>
             <button onclick="toggleRoof()">Toggle Roof</button>
             <button onclick="toggle3DLabels()">Toggle Labels</button>
-        <button onclick="closeViewer()">Close</button>
         </div>
+        <div id="elevationControls" class="viewerControls hidden">
+            <label class="elevationSelect" for="elevationSide">View
+                <select id="elevationSide" onchange="redrawElevation()">
+                    <option value="front">Front</option>
+                    <option value="back">Back</option>
+                    <option value="left">Left</option>
+                    <option value="right">Right</option>
+                </select>
+            </label>
+            <button onclick="redrawElevation()">Refresh</button>
+        </div>
+        <button onclick="closeViewer()">Close</button>
     </div>
-    <canvas id="threeCanvas"></canvas></div>
+    <canvas id="threeCanvas"></canvas>
+    <canvas id="elevationCanvas" class="hidden" aria-label="Front elevation drawing"></canvas></div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="/js/planner.js"></script><script src="/js/viewer3d.js"></script><script src="/js/app.js"></script></body></html>
+<script src="/js/planner.js"></script><script src="/js/viewer3d.js"></script></body></html>
