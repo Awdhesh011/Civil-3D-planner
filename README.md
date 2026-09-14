@@ -42,6 +42,7 @@ uvicorn backend.main:app --reload
 
 Open:
 http://127.0.0.1:8000
+https://civil-3d-planner.onrender.com/
 
 Do not open index.html directly with file://.
 
