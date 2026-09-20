@@ -10,6 +10,16 @@ class Room(BaseModel):
     height:float=Field(gt=0)
     wall_thickness:float=Field(default=.23,gt=0)
     floor_height:float=Field(default=3,gt=0)
+    furniture:List['Furniture'] = []
+
+class Furniture(BaseModel):
+    id:str
+    type:Literal["bed","sofa","table","desk","wardrobe","chair","cabinet"]
+    x:float=Field(ge=0)
+    y:float=Field(ge=0)
+    width:float=Field(default=1,gt=0)
+    depth:float=Field(default=1,gt=0)
+    rotation:float=0
 
 class Opening(BaseModel):
     id:str

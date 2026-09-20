@@ -1372,6 +1372,11 @@ function createRoomFurniture(
     baseY
 ) {
 
+    if (room.furniture && room.furniture.length) {
+        room.furniture.forEach(item => createFurnitureItem(room, item, baseY));
+        return;
+    }
+
     const name =
         String(room.name || "").toLowerCase();
 
@@ -1421,6 +1426,52 @@ function createRoomFurniture(
             room,
             baseY
         );
+    }
+}
+
+function createFurnitureItem(room, item, baseY) {
+    const colors = { bed: 0xc58b68, sofa: 0x4f7180, table: 0x8a5b3d, desk: 0x70472f, wardrobe: 0x8f9697, chair: 0x405b66, cabinet: 0x70472f };
+    const material = new THREE.MeshStandardMaterial({ color: colors[item.type] || 0x78909c, roughness: .82 });
+    const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xf0e4cf, roughness: .9 });
+    const center = { x: room.x + item.x + item.width / 2, z: room.y + item.y + item.depth / 2 };
+    const group = new THREE.Group();
+    group.position.set(center.x, baseY, center.z);
+    group.rotation.y = (item.rotation || 0) * Math.PI / 180;
+    houseGroup.add(group);
+
+    function part(width, height, depth, x, y, z, partMaterial = material, bevel = 0) {
+        const geometry = new THREE.BoxGeometry(width, height, depth);
+        if (bevel) geometry.translate(0, 0, 0);
+        const mesh = new THREE.Mesh(geometry, partMaterial);
+        mesh.position.set(x, y, z); mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh); return mesh;
+    }
+    function leg(x, z, height = .65) { part(.09, height, .09, x, height / 2, z); }
+
+    if (item.type === 'bed') {
+        part(item.width, .32, item.depth, 0, .16, 0);
+        part(item.width, .62, .12, 0, .62, item.depth / 2 - .06, material);
+        part(Math.max(.35, item.width - .18), .16, Math.min(.5, item.depth * .28), 0, .42, -item.depth / 2 + Math.min(.32, item.depth * .18), lightMaterial);
+    } else if (item.type === 'sofa') {
+        part(item.width, .36, item.depth, 0, .3, 0);
+        part(item.width, .66, .18, 0, .72, item.depth / 2 - .09);
+        part(.16, .62, item.depth, -item.width / 2 + .08, .61, 0);
+        part(.16, .62, item.depth, item.width / 2 - .08, .61, 0);
+        part(Math.max(.4, item.width * .42), .12, Math.max(.35, item.depth - .25), -item.width * .23, .53, -.02, lightMaterial);
+        part(Math.max(.4, item.width * .42), .12, Math.max(.35, item.depth - .25), item.width * .23, .53, -.02, lightMaterial);
+    } else if (item.type === 'table' || item.type === 'desk') {
+        const topHeight = item.type === 'desk' ? .78 : .82;
+        part(item.width, .12, item.depth, 0, topHeight, 0);
+        [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => leg(x * (item.width / 2 - .1), z * (item.depth / 2 - .1), topHeight));
+    } else if (item.type === 'chair') {
+        part(item.width, .12, item.depth, 0, .48, 0);
+        part(item.width, .55, .1, 0, .77, item.depth / 2 - .05);
+        [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => leg(x * (item.width / 2 - .06), z * (item.depth / 2 - .06), .48));
+    } else {
+        const height = item.type === 'wardrobe' ? 1.9 : 1;
+        part(item.width, height, item.depth, 0, height / 2, 0);
+        part(.025, height - .12, .02, 0, height / 2, item.depth / 2 + .012, lightMaterial);
+        part(.06, .06, .06, -item.width * .16, height / 2, item.depth / 2 + .04, lightMaterial);
+        part(.06, .06, .06, item.width * .16, height / 2, item.depth / 2 + .04, lightMaterial);
     }
 }
 
